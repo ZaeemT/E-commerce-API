@@ -65,4 +65,23 @@ const getSingleOrder = async(req, res) => {
     }
 }
 
-module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder }
+// Vendor can update the order status
+const updateOrderStatus = async(req, res) => {
+    const { orderStatus } = req.body;
+
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+        }
+
+        order.orderStatus = orderStatus || order.orderStatus;
+        const updatedOrder = await order.save();
+
+        res.json(updatedOrder);
+    } catch (err) {
+        res.status(400).json({ message: 'Error updating order status', error: err.message });
+    }
+}
+
+module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder, updateOrderStatus }
