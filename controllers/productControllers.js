@@ -10,6 +10,18 @@ const getAllProducts = async(req, res) => {
     }
 }
 
+const getSingleProduct = async(req, res) => {
+    try {
+        const product = await Product.findById(req.params.id).populate('vendor', 'name');
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json(product);
+    } catch (err) {
+        res.status(400).json({ message: 'Error fetching product' });
+    }
+}
+
 const createProduct = async(req, res) => {
     try {
         const product = await Product.create({ ...req.body, vendor: req.user.id })
@@ -20,4 +32,4 @@ const createProduct = async(req, res) => {
     }
 }
 
-module.exports = { createProduct, getAllProducts }
+module.exports = { createProduct, getAllProducts, getSingleProduct }
