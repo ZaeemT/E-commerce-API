@@ -40,5 +40,14 @@ const getAllOrders = async(req, res) => {
     }   
 }
 
+// Get all orders for logged-in customer
+const getCustomersOrder = async(req, res) => {
+    try {
+        const orders = await Order.find({ customer: req.user.id }).populate('orderItems.product', 'name price');
+        res.json(orders);
+    } catch (err) {
+        res.status(400).json({ message: 'Error fetching orders', error: err.message });
+    }
+}
 
-module.exports = { createOrder, getAllOrders }
+module.exports = { createOrder, getAllOrders, getCustomersOrder }
