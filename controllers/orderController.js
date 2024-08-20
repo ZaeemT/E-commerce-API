@@ -50,4 +50,19 @@ const getCustomersOrder = async(req, res) => {
     }
 }
 
-module.exports = { createOrder, getAllOrders, getCustomersOrder }
+// Get a specific order by id
+const getSingleOrder = async(req, res) => {
+    try {
+        const order = await Order.findById(req.params.id)
+          .populate('orderItems.product', 'name price')
+          .populate('customer', 'name email');
+        if (!order) {
+          return res.status(404).json({ message: 'Order not found' });
+        }
+        res.json(order);
+    } catch (err) {
+        res.status(400).json({ message: 'Error fetching order', error: err.message });
+    }
+}
+
+module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder }
