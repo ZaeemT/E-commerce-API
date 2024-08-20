@@ -1,9 +1,11 @@
 const express = require('express')
 const router = express.Router()
 
-const { createProduct } = require('../controllers/productControllers')
+const { createProduct, getAllProducts } = require('../controllers/productControllers')
 const { authenticateUser, authorizePermissions } = require('../middlewares/authenticate')
 
-router.post('/create_product', authenticateUser, authorizePermissions('vendor'), createProduct)
+router.get('/all_products', authenticateUser, authorizePermissions('admin'), getAllProducts)
+router.post('/create_product', authenticateUser, authorizePermissions('vendor', 'admin'), createProduct)
+
 
 module.exports = router
