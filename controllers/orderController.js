@@ -29,4 +29,16 @@ const createOrder = async(req, res) => {
     }
 }
 
-module.exports = { createOrder }
+// Get all orders for admin
+const getAllOrders = async(req, res) => {
+    try {
+        const orders = await Order.find({}).populate('orderItems.product', 'name price')
+        res.status(200).json(orders)
+    } 
+    catch (err) {
+        res.status(400).json({ message: 'Could not find orders' })
+    }   
+}
+
+
+module.exports = { createOrder, getAllOrders }
