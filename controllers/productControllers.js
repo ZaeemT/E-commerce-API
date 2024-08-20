@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const Product = require('../models/productModel')
 
+// Get all the products available
 const getAllProducts = async(req, res) => {
     try {
         const products = await Product.find({}).populate('vendor', 'name')
@@ -12,6 +13,21 @@ const getAllProducts = async(req, res) => {
     }
 }
 
+// Get all products of a specific logged-in vendor
+const getVendorsProducts = async(req, res) => {
+    try {
+        const products = await Product.find({ vendor: req.user.id })
+        if (!products) {
+            return res.status(404).json({ message: 'Vendor has no products' });
+        }
+        res.status(200).json(products)
+    }
+    catch (err) {
+        res.status(400).json({ message: 'Could not find products' })
+    }
+}
+
+// Get a specific product
 const getSingleProduct = async(req, res) => {
     try {
         const product = await Product.findById(req.params.id).populate('vendor', 'name');
@@ -79,4 +95,4 @@ const deleteProduct = async(req, res) => {
 }
 
 
-module.exports = { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct }
+module.exports = { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct, getVendorsProducts }
