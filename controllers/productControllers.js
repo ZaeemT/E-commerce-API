@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const Product = require('../models/productModel')
 
 const getAllProducts = async(req, res) => {
@@ -56,6 +58,25 @@ const updateProduct = async(req, res) => {
     }
 }
 
-//TODO delete product
+const deleteProduct = async(req, res) => {
+    try {
+        const { id } = req.params
 
-module.exports = { createProduct, getAllProducts, getSingleProduct, updateProduct }
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({error: 'No such product'}) 
+        }
+
+        const product = await Product.findOneAndDelete({_id: id})
+
+        if (!product) {
+            return res.status(404).json({error: 'No such product'})
+        }
+    
+        res.status(200).json({ message: 'Product deleted' });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+}
+
+
+module.exports = { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct }
