@@ -14,7 +14,7 @@ const authenticateUser = async (req, res, next) => {
 
     try {
         const {_id} = jwt.verify(token, process.env.SECRET)
-        req.user = await User.findOne({_id}).select('_id')
+        req.user = await User.findOne({_id})
         next()
     } catch (error) {
         console.log(error)
@@ -25,9 +25,7 @@ const authenticateUser = async (req, res, next) => {
 const authorizePermissions = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
-            throw new CustomError.UnauthorizedError(
-                "Unauthorized to access to this route"
-            )
+            throw new Error("Unauthorized to access to this route")
         }
         next()
     }
