@@ -67,22 +67,51 @@ const getSingleOrder = async(req, res) => {
     }
 }
 
-// Vendor can update the order status
-const updateOrderStatus = async(req, res) => {
-    const { orderStatus } = req.body;
+// Function to update order status
+const updateOrderStatus = (order) => {
+    const allStatuses = order.orderItems.map(item => item.itemStatus);
+  
+    if (allStatuses.every(status => status === 'delivered')) {
+      return 'delivered';
+    }
+    if (allStatuses.every(status => status === 'shipped' || status === 'delivered')) {
+      return 'shipped';
+    }
+    if (allStatuses.includes('cancelled') && allStatuses.every(status => status !== 'processing')) {
+      return 'cancelled';
+    }
+    return 'processing';
+};
+
+// Vendor can update their order status 
+const updateOrderItemStatus = async(req, res) => {
+    const { orderId, itemId, itemStatus } = req.body;
 
     try {
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findById(orderId).populate({
+        path: 'orderItems.product',
+        select: 'vendor',
+        });
+
         if (!order) {
         return res.status(404).json({ message: 'Order not found' });
         }
 
-        order.orderStatus = orderStatus || order.orderStatus;
-        const updatedOrder = await order.save();
+        const orderItem = order.orderItems.find(item => item._id.toString() === itemId && item.product.vendor.toString() === req.user.id);
+        if (!orderItem) {
+        return res.status(403).json({ message: 'Unauthorized to update this item' });
+        }
 
-        res.json(updatedOrder);
+        orderItem.itemStatus = itemStatus;
+
+        // Update overall order status
+        order.orderStatus = updateOrderStatus(order);
+
+        await order.save();
+
+        res.json({ message: 'Order item status updated', order });
     } catch (err) {
-        res.status(400).json({ message: 'Error updating order status', error: err.message });
+        res.status(400).json({ message: 'Error updating order item status', error: err.message });
     }
 }
 
@@ -136,4 +165,4 @@ const deleteOrder = async(req, res) => {
     }
 }
 
-module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder, updateOrderStatus, getVendorOrder, deleteOrder }
+module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder, updateOrderItemStatus, getVendorOrder, deleteOrder }
