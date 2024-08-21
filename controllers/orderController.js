@@ -88,18 +88,19 @@ const updateOrderItemStatus = async(req, res) => {
     const { orderId, itemId, itemStatus } = req.body;
 
     try {
-        const order = await Order.findById(orderId).populate({
-        path: 'orderItems.product',
-        select: 'vendor',
-        });
+        const order = await Order.findById(orderId)
+            .populate({
+                path: 'orderItems.product',
+                select: 'vendor',
+            });
 
         if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
+            return res.status(404).json({ message: 'Order not found' });
         }
 
         const orderItem = order.orderItems.find(item => item._id.toString() === itemId && item.product.vendor.toString() === req.user.id);
         if (!orderItem) {
-        return res.status(403).json({ message: 'Unauthorized to update this item' });
+            return res.status(403).json({ message: 'Unauthorized to update this item' });
         }
 
         orderItem.itemStatus = itemStatus;
@@ -107,7 +108,7 @@ const updateOrderItemStatus = async(req, res) => {
         // Update overall order status
         order.orderStatus = updateOrderStatus(order);
 
-        await order.save();
+        order = await order.save();
 
         res.json({ message: 'Order item status updated', order });
     } catch (err) {
@@ -165,4 +166,12 @@ const deleteOrder = async(req, res) => {
     }
 }
 
-module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder, updateOrderItemStatus, getVendorOrder, deleteOrder }
+module.exports = { 
+    createOrder, 
+    getAllOrders, 
+    getCustomersOrder, 
+    getSingleOrder, 
+    updateOrderItemStatus, 
+    getVendorOrder, 
+    deleteOrder
+}
