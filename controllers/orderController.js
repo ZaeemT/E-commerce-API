@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const Order = require('../models/orderModel')
 const Product = require('../models/productModel')
 
@@ -84,4 +86,54 @@ const updateOrderStatus = async(req, res) => {
     }
 }
 
-module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder, updateOrderStatus }
+// Logged-in vendor can get his/her products that were ordered
+const getVendorOrder = async(req, res) => {
+    try {
+        // Find orders containing products from the logged-in vendor
+        const orders = await Order.find({
+          'orderItems.product': { $exists: true },
+        }).populate({
+          path: 'orderItems.product',
+          select: 'name price vendor',
+          match: { vendor: req.user.id }, // Match products that belong to the logged-in vendor
+        });
+    
+        // Filter out products that don't belong to the vendor
+        const vendorOrders = orders.map(order => {
+            const filteredOrderItems = order.orderItems.filter(item => item.product && item.product.vendor.toString() === req.user.id);
+
+            const { totalPrice, ...orderWithoutTotalPrice } = order._doc;
+
+            return { ...orderWithoutTotalPrice, orderItems: filteredOrderItems };
+
+        }).filter(order => order.orderItems.length > 0);
+    
+        res.json(vendorOrders);
+    } catch (err) {
+        res.status(400).json({ message: 'Error fetching vendor orders', error: err.message });
+    }
+}
+
+
+// Only admin can delete order
+const deleteOrder = async(req, res) => {
+    try {
+        const { id } = req.params
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({error: 'No such order'}) 
+        }
+
+        const order = await Order.findOneAndDelete({_id: id})
+
+        if (!order) {
+            return res.status(404).json({error: 'No such order'})
+        }
+    
+        res.status(200).json({ message: 'Order deleted' });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+}
+
+module.exports = { createOrder, getAllOrders, getCustomersOrder, getSingleOrder, updateOrderStatus, getVendorOrder, deleteOrder }
