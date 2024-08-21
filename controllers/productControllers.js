@@ -58,10 +58,6 @@ const updateProduct = async(req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
         
-        // Check if the logged-in user is the owner of the product or an admin
-        if (product.vendor.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Unauthorized to update this product' });
-        }
     
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
