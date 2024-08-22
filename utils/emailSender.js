@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer')
 
 const sendOrderReceipt = async (email, filePath) => {
     const transporter = nodemailer.createTransport({
@@ -11,8 +11,7 @@ const sendOrderReceipt = async (email, filePath) => {
 
     const mailOptions = {
         from: process.env.USER_EMAIL,
-        //to: email,
-        to: 'hafsaanis31@gmail.com',
+        to: email,
         subject: 'Your Order Receipt',
         text: 'Thank you for your order. Please find your order receipt attached.',
         attachments: [
