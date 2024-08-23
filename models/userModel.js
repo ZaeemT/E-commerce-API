@@ -24,7 +24,11 @@ const userSchema = new Schema({
         enum: ['vendor', 'customer', 'admin'],
         required: true,
         default: 'customer'
-    }
+    },
+    resetPasswordToken: { 
+        type: String,
+    }, 
+    resetPasswordExpires: { type: Date }
 
 })
 
@@ -75,6 +79,6 @@ userSchema.statics.login = async function(email, password) {
     }
 
     return user
-}
+} 
 
 module.exports = mongoose.model('Ecomm_User', userSchema)
