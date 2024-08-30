@@ -1,15 +1,11 @@
 const mongoose = require('mongoose')
-const path = require('path')
-const fs = require('fs')
 
 const Order = require('../models/orderModel')
 const Product = require('../models/productModel')
 
-const generateOrderReceipt = require('../utils/pdfGenerator')
-const sendOrderReceipt = require('../utils/emailSender')
 
 const createOrder = async(req, res) => {
-    const { orderItems, paymentStatus } = req.body;
+    const { orderItems } = req.body;
 
     try {
         // Calculate the total price
@@ -27,35 +23,11 @@ const createOrder = async(req, res) => {
             customer: req.user.id,
             orderItems,
             totalPrice,
-            paymentStatus,
         });
 
         order = await Order.findById(order._id)
             .populate('customer', 'name email')
             .populate('orderItems.product', 'name price');
-
-
-        // Ensure the receipts directory exists
-        const receiptsDir = path.join(__dirname, '../receipts');
-        if (!fs.existsSync(receiptsDir)) {
-            fs.mkdirSync(receiptsDir, { recursive: true });
-        }
-
-        // Generate PDF receipt
-        const filePath = path.join(__dirname, `../receipts/receipt-${order._id}.pdf`);
-        generateOrderReceipt(order, filePath);
-
-        // Send PDF receipt via email
-        await sendOrderReceipt(req.user.email, filePath);
-
-        // Delete the PDF file after sending the email
-        fs.unlink(filePath, (err) => {
-            if (err) {
-                console.error(`Error deleting file: ${filePath}`, err);
-            } else {
-                console.log(`File deleted: ${filePath}`);
-            }
-        });
 
         res.status(201).json(order);
     } catch (err) {

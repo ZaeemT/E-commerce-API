@@ -17,6 +17,7 @@
     "mongoose": "^8.5.3",
     "nodemailer": "^6.9.14",
     "pdfkit": "^0.15.0",
+    "stripe": "^16.8.0",
     "validator": "^13.12.0"
   }
 }
